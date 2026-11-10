@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SO-prov: Andra världskriget</title>
+<style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}</style>
+<style>
+/* Layout: ChatGPT-lik läsvy – smal centrerad spalt, fast toppbalk med klocka, svarsfält som rundade "composer"-bubblor */
+:root {
+  --bg: #ffffff;
+  --fg: #0d0d0d;
+  --muted: #5d5d5d;
+  --surface: #f4f4f4;
+  --border: #e5e5e5;
+  --btn: #0d0d0d;
+  --btn-fg: #ffffff;
+  --ok: #10a37f;
+  --ok-bg: #e7f6f1;
+  --warn: #c2700a;
+  --bad: #d92d20;
+  --bad-bg: #fdecea;
+  --font: ui-sans-serif, -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #212121; --fg: #ececec; --muted: #b4b4b4; --surface: #303030; --border: #3d3d3d;
+    --btn: #ececec; --btn-fg: #0d0d0d; --ok: #2fc39a; --ok-bg: #173a30; --warn: #f0a840;
+    --bad: #f97066; --bad-bg: #44211f; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #212121; --fg: #ececec; --muted: #b4b4b4; --surface: #303030; --border: #3d3d3d;
+  --btn: #ececec; --btn-fg: #0d0d0d; --ok: #2fc39a; --ok-bg: #173a30; --warn: #f0a840;
+  --bad: #f97066; --bad-bg: #44211f; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 16px; line-height: 1.65; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+
+.topbar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--bg); border-bottom: 1px solid var(--border);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.topbar-inner { max-width: 48rem; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 10px; }
+.brand { font-weight: 600; font-size: 1.05rem; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand span { color: var(--muted); font-weight: 400; }
+.clock { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.clock-time { font-family: var(--mono); font-size: 1.6rem; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+.clock-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
+.clock.running .clock-dot { background: var(--ok); animation: pulse 1.2s ease-in-out infinite; }
+.clock.low .clock-time, .clock.low .clock-dot { color: var(--warn); background-color: transparent; }
+.clock.low .clock-dot { background: var(--warn); }
+.clock.critical .clock-time { color: var(--bad); }
+.clock.critical .clock-dot { background: var(--bad); }
+.bar { height: 4px; background: var(--surface); }
+.bar-fill { height: 100%; width: 100%; background: var(--ok); transition: width 1s linear, background-color .3s; }
+.clock-wrap.low .bar-fill { background: var(--warn); }
+.clock-wrap.critical .bar-fill { background: var(--bad); }
+@keyframes pulse { 50% { opacity: .35; } }
+
+main { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 32px 96px; }
+.col { max-width: 48rem; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+
+h1 { font-size: 1.9rem; line-height: 1.25; margin: 0 0 8px; text-wrap: balance; }
+h2 { font-size: 1.25rem; line-height: 1.35; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+hr { border: 0; border-top: 1px solid var(--border); margin: 0; }
+
+.intro { display: flex; flex-direction: column; gap: 16px; }
+.intro ul { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: 4px; }
+.start-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: stretch; margin-top: 8px; }
+.name-input {
+  flex: 1 1 240px; min-width: 0; font: inherit; color: var(--fg); background: var(--surface);
+  border: 1px solid transparent; border-radius: 24px; padding: 12px 20px;
+}
+.name-input:focus, textarea:focus { outline: none; border-color: var(--muted); }
+.btn {
+  font: inherit; font-weight: 600; border: 0; border-radius: 999px; padding: 12px 24px; cursor: pointer;
+  background: var(--btn); color: var(--btn-fg);
+}
+.btn:hover { opacity: .85; }
+.btn:focus-visible, .name-input:focus-visible, textarea:focus-visible { outline: 2px solid var(--ok); outline-offset: 2px; }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn-ghost { background: transparent; color: var(--fg); border: 1px solid var(--border); }
+.hint { font-size: .9rem; color: var(--bad); min-height: 1.4em; }
+
+.q { display: flex; flex-direction: column; gap: 14px; }
+.q-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.q-head h2 { min-width: 0; }
+.score { flex-shrink: 0; font-weight: 600; font-variant-numeric: tabular-nums; border-radius: 999px; padding: 2px 12px; font-size: .9rem; }
+.score.full { background: var(--ok-bg); color: var(--ok); }
+.score.part { background: var(--surface); color: var(--fg); }
+.score.none { background: var(--bad-bg); color: var(--bad); }
+.fields { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.field { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; }
+.num { width: 28px; height: 28px; border-radius: 50%; background: var(--surface); display: grid; place-items: center; font-size: .85rem; font-weight: 600; margin-top: 10px; font-variant-numeric: tabular-nums; }
+.field-body { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+textarea {
+  width: 100%; resize: none; overflow: hidden; font: inherit; line-height: 1.5; color: var(--fg);
+  background: var(--surface); border: 1px solid transparent; border-radius: 20px; padding: 10px 18px; min-height: 46px;
+}
+textarea:disabled { opacity: 1; }
+.field.ok textarea { border-color: var(--ok); background: var(--ok-bg); }
+.field.bad textarea { border-color: var(--bad); }
+.field.ok .num { background: var(--ok); color: #fff; }
+.field.bad .num { background: var(--bad); color: #fff; }
+.verdict { font-size: .85rem; padding-left: 18px; }
+.field.ok .verdict { color: var(--ok); }
+.field.bad .verdict { color: var(--bad); }
+
+details.facit { background: var(--surface); border-radius: 16px; padding: 12px 18px; }
+details.facit summary { cursor: pointer; font-weight: 600; }
+details.facit ol { margin: 10px 0 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: 6px; }
+details.facit li.hit::marker { color: var(--ok); }
+details.facit li.miss { color: var(--muted); }
+details.facit li .tag { font-size: .8rem; font-weight: 600; margin-left: 6px; }
+details.facit li.hit .tag { color: var(--ok); }
+details.facit li.miss .tag { color: var(--bad); }
+
+.submit-zone { display: flex; flex-direction: column; align-items: center; gap: 10px; padding-top: 8px; }
+.submit-zone .btn { font-size: 1.15rem; letter-spacing: .06em; padding: 16px 48px; }
+
+.result { border: 1px solid var(--border); border-radius: 24px; padding: 28px; display: flex; flex-direction: column; gap: 20px; }
+.result-top { display: flex; flex-wrap: wrap; gap: 24px; align-items: center; }
+.grade { font-size: 5rem; font-weight: 700; line-height: 1; width: 1.2em; text-align: center; }
+.result-facts { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.result-facts strong { font-size: 1.3rem; }
+.scale { display: flex; gap: 6px; flex-wrap: wrap; }
+.scale div { flex: 1 1 0; min-width: 52px; text-align: center; border-radius: 12px; padding: 6px 4px; background: var(--surface); font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.scale div b { display: block; font-size: 1.1rem; color: var(--fg); }
+.scale div.on { background: var(--btn); color: var(--btn-fg); }
+.scale div.on b { color: var(--btn-fg); }
+.mail-status { font-size: .9rem; color: var(--muted); }
+.result-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.ai-note { display: block; color: var(--muted); }
+.field.big { grid-template-columns: 1fr; }
+.field.big .num { display: none; }
+.field.big textarea { min-height: 150px; }
+.practice-opts { display: flex; flex-direction: column; gap: 6px; }
+.check { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.check input { width: 18px; height: 18px; margin-top: 4px; flex-shrink: 0; accent-color: var(--ok); }
+.grading { display: flex; gap: 16px; align-items: center; }
+.spinner { width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%; border: 3px solid var(--surface); border-top-color: var(--ok); animation: spin .9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 480px) {
+  .brand span { display: none; }
+  .clock-time { font-size: 1.35rem; }
+  .result { padding: 20px; }
+  .grade { font-size: 4rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .clock.running .clock-dot { animation: none; }
+  .bar-fill { transition: none; }
+  .spinner { animation-duration: 3s; }
+}
+/* ---------- Tillägg för sistaprov ---------- */
+.answer.ok textarea { border-color: var(--ok); background: var(--ok-bg); }
+.answer textarea { min-height: 46px; padding: 10px 18px; }
+.answer.part textarea { border-color: var(--warn); }
+.answer.bad textarea { border-color: var(--bad); }
+.feedback { display: flex; flex-direction: column; gap: 6px; font-size: .95rem; }
+.feedback .ai-note { color: var(--fg); }
+.badge-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.round-tag { font-size: .85rem; color: var(--muted); }
+
+.lara { display: flex; flex-direction: column; gap: 18px; }
+.lara > h2 { font-size: 1.4rem; }
+.lara-q { background: var(--surface); border-radius: 18px; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+.lara-q h3 { margin: 0; font-size: 1.05rem; line-height: 1.4; display: flex; justify-content: space-between; gap: 12px; }
+.lara-q h3 a { color: inherit; text-decoration: none; }
+.lara-q h3 a:hover { text-decoration: underline; }
+.lara-q ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.lara-q li { border-left: 3px solid var(--warn); padding-left: 12px; }
+.lara-q li.fel { border-left-color: var(--bad); }
+.lara-q li .rubrik { display: block; font-weight: 600; font-size: .9rem; }
+.lara-q li.fel .rubrik { color: var(--bad); }
+.lara-q li.saknas .rubrik { color: var(--warn); }
+.lara-q li .facit-steg { display: block; font-style: italic; }
+.history { display: flex; flex-wrap: wrap; gap: 8px; }
+.history span { background: var(--surface); border-radius: 999px; padding: 2px 12px; font-size: .85rem; font-variant-numeric: tabular-nums; }
+.result .btn-big { font-size: 1.05rem; padding: 14px 28px; }
+</style>
+</head>
+<body>
+
+<div class="clock-wrap" id="clockWrap">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">SO-prov <span id="brandSub">· Andra världskriget, del 3</span></div>
+      <div class="clock" id="clock" aria-live="off">
+        <span class="clock-dot" aria-hidden="true"></span>
+        <span class="clock-time" id="clockTime">75:00</span>
+      </div>
+    </div>
+  </header>
+  <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+</div>
+
+<main>
+  <div class="col">
+    <section class="result" id="result" hidden></section>
+
+    <section class="lara" id="lara" hidden></section>
+
+    <section class="intro" id="intro">
+      <div>
+        <h1>SO-prov: Andra världskriget, del 3</h1>
+        <p class="muted">Historia · Åk 9 · 20 frågor · 75 minuter</p>
+      </div>
+      <p>Vid varje fråga står det hur många steg du ska komma ihåg, och det finns lika många svarsfält. Skriv <strong>ett steg i varje fält</strong> med egna ord. Ordningen spelar ingen roll.</p>
+      <ul>
+        <li>Klockan startar när du trycker på <strong>Starta provet</strong>, och provet lämnas in automatiskt när tiden är slut.</li>
+        <li>Varje rätt steg ger 1 poäng. Totalt finns 115 poäng.</li>
+        <li>Claude rättar provet. Stavfel spelar ingen roll – det är innehållet som räknas: rätt händelser, personer och årtal. Felaktiga påståenden ger inga poäng.</li>
+        <li>Efter rättningen får du förklaringar till allt du missade eller hade fel på, och kan sedan skriva ett nytt prov med bara de frågorna.</li>
+      </ul>
+      <div class="start-row">
+        <label for="studentName" hidden>Ditt namn</label>
+        <input id="studentName" class="name-input" type="text" placeholder="Skriv ditt för- och efternamn" autocomplete="name">
+        <button class="btn" id="startBtn" type="button">Starta provet</button>
+      </div>
+      <p class="hint" id="startHint"></p>
+    </section>
+
+    <div id="questions" class="col" hidden></div>
+
+    <div class="submit-zone" id="submitZone" hidden>
+      <button class="btn" id="submitBtn" type="button">LÄMNA IN</button>
+      <p class="hint" id="submitHint"></p>
+    </div>
+  </div>
+</main>
+
+<script src="fragor.js"></script>
+<script>
+// Hit skickas resultatet efter varje runda. Lämna tomt för att inte skicka något mail.
+const MOTTAGARE_EPOST = "cryptopatrick@gmail.com";
+// Rättningsservern (soprovdel03/server på VPS:en). Sidan som hämtas från servern själv anropar den på samma adress.
+const RATTNINGSSERVER = "https://soprov3.49-12-204-84.sslip.io";
+const PROVTID_MIN = 75;
+const STORE_KEY = "soprov-ww2-del3-v1";
+
+// På GitHub Pages (eller som lokal fil) går rättningen till servern ovan; annars är sidan hämtad från servern själv.
+const rattaUrl = () => (/github\.io$/.test(location.hostname) || location.protocol === "file:" ? RATTNINGSSERVER : "") + "/ratta";
+const ALLA = QUESTIONS.map((_, i) => i);
+const ALLA_STEG = QUESTIONS.reduce((n, q) => n + q.s.length, 0);
+
+/* ---------- Reservrättning med nyckelord (om servern inte går att nå) ---------- */
+function norm(s) {
+  return " " + s.toLowerCase()
+    .replace(/(\d)[\s.,](?=\d{3}(\D|$))/g, "$1")
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, " ").trim() + " ";
+}
+function lev(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++)
+    for (let j = 1; j <= b.length; j++)
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+function has(text, tokens, alt) {
+  if (text.includes(alt)) return true;
+  if (alt.includes(" ") || alt.length < 5) return false;
+  return tokens.some(t => t.length >= alt.length - 1 && lev(t.slice(0, alt.length), alt) <= 1);
+}
+function stepMatches(answer, step) {
+  const text = norm(answer);
+  if (text.trim().length < 2) return false;
+  const tokens = text.trim().split(" ");
+  return step.k.every(group => group.some(alt => has(text, tokens, alt)));
+}
+function nyckelordsRattning(urval, svar) {
+  const per = {};
+  urval.forEach(qi => {
+    const steg = QUESTIONS[qi].s.map((st, si) => stepMatches(svar[qi] || "", st) ? si : -1).filter(si => si >= 0);
+    per[qi] = { steg, kommentar: "", saknas: [], fel: [] };
+  });
+  return per;
+}
+const betygFor = pct => GRADES.find(x => pct >= x.min).g;
+
+/* ---------- Tillstånd ---------- */
+// En "runda" är ett prov: runda 1 har alla frågor, senare rundor bara de frågor eleven inte hade helt rätt på.
+let state = nyttState();
+function nyttState() {
+  return { name: "", runda: 1, urval: ALLA, provtidMin: PROVTID_MIN, startedAt: null, submittedAt: null, falt: {}, svar: {}, per: null, rattning: null, rattningsfel: null, mailSent: false, historik: [] };
+}
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+    if (s && Array.isArray(s.urval) && s.svar && typeof s.svar === "object") state = { ...nyttState(), ...s, falt: s.falt || {} };
+  } catch (e) {}
+}
+function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {} }
+const totalMs = () => state.provtidMin * 60 * 1000;
+
+/* ---------- Gränssnitt ---------- */
+const $ = id => document.getElementById(id);
+const qWrap = $("questions");
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+function autoGrow(el) { el.style.height = "auto"; el.style.height = el.scrollHeight + 2 + "px"; }
+function fmt(ms) {
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+}
+
+// Ett fält per steg. Fälten slås ihop till ett svar per fråga (en rad per steg) som skickas till rättningen.
+const slaIhop = rader => (rader || []).map(t => t.trim()).filter(Boolean).map(t => "- " + t).join("\n");
+
+function buildQuestions() {
+  qWrap.innerHTML = "";
+  state.urval.forEach((qi, ix) => {
+    const q = QUESTIONS[qi];
+    if (!Array.isArray(state.falt[qi])) state.falt[qi] = [];
+    const sec = document.createElement("section");
+    sec.className = "q";
+    sec.id = "q" + (qi + 1);
+    sec.innerHTML = `
+      <div class="q-head"><h2>${qi + 1}. ${esc(q.t)}</h2><span class="score" hidden></span></div>
+      <p class="muted">Kom ihåg <strong>${q.s.length} steg</strong>.</p>
+      <ol class="fields answer"></ol>
+      <div class="feedback" hidden></div>`;
+    const ol = sec.querySelector(".fields");
+    for (let si = 0; si < q.s.length; si++) {
+      const li = document.createElement("li");
+      li.className = "field";
+      li.innerHTML = `<span class="num" aria-hidden="true">${si + 1}</span>
+        <div class="field-body"><textarea id="a-${qi}-${si}" rows="1" aria-label="Fråga ${qi + 1}, steg ${si + 1}" placeholder="Steg ${si + 1}…"></textarea></div>`;
+      const ta = li.querySelector("textarea");
+      ta.value = state.falt[qi][si] || "";
+      ta.addEventListener("input", () => {
+        state.falt[qi][si] = ta.value;
+        state.svar[qi] = slaIhop(state.falt[qi]);
+        autoGrow(ta);
+        save();
+        $("submitHint").textContent = "";
+        armed = false;
+      });
+      ol.appendChild(li);
+    }
+    qWrap.appendChild(sec);
+    if (ix < state.urval.length - 1) qWrap.appendChild(document.createElement("hr"));
+  });
+  requestAnimationFrame(() => qWrap.querySelectorAll("textarea").forEach(autoGrow));
+}
+
+let ticker = null;
+function tick() {
+  const left = totalMs() - (Date.now() - state.startedAt);
+  $("clockTime").textContent = fmt(left);
+  $("barFill").style.width = Math.max(0, left / totalMs() * 100) + "%";
+  const low = left <= Math.min(10, state.provtidMin / 4) * 60000, crit = left <= Math.min(5, state.provtidMin / 8) * 60000;
+  [$("clock"), $("clockWrap")].forEach(el => { el.classList.toggle("low", low && !crit); el.classList.toggle("critical", crit); });
+  if (left <= 0) submit(true);
+}
+function stoppaKlockan() {
+  clearInterval(ticker);
+  $("clock").classList.remove("running", "low", "critical");
+  $("clockWrap").classList.remove("low", "critical");
+}
+
+function startExam() {
+  const name = $("studentName").value.trim();
+  if (name.length < 2) { $("startHint").textContent = "Skriv ditt namn innan du startar provet."; $("studentName").focus(); return; }
+  state.name = name;
+  state.startedAt = Date.now();
+  save();
+  showRunning();
+}
+
+function showRunning() {
+  $("intro").hidden = true;
+  $("result").hidden = true;
+  $("lara").hidden = true;
+  qWrap.hidden = false;
+  $("submitZone").hidden = false;
+  $("clock").classList.add("running");
+  buildQuestions();
+  tick();
+  ticker = setInterval(tick, 1000);
+  window.scrollTo({ top: 0 });
+}
+
+let armed = false;
+function submit(timeUp) {
+  if (state.submittedAt) return;
+  if (!timeUp) {
+    const tomma = state.urval.filter(qi => !(state.svar[qi] || "").trim()).length;
+    if (tomma && !armed) {
+      armed = true;
+      $("submitHint").textContent = `Du har ${tomma} ${tomma === 1 ? "obesvarad fråga" : "obesvarade frågor"}. Tryck på LÄMNA IN igen om du vill lämna in ändå.`;
+      return;
+    }
+  }
+  state.submittedAt = Math.min(Date.now(), state.startedAt + totalMs());
+  save();
+  rattaOchVisa();
+}
+
+function laseLage() {
+  stoppaKlockan();
+  $("intro").hidden = true;
+  $("submitZone").hidden = true;
+  qWrap.hidden = false;
+  if (!qWrap.children.length) buildQuestions();
+  qWrap.querySelectorAll("textarea").forEach(t => t.disabled = true);
+}
+
+async function rattaOchVisa() {
+  if (state.per) return showResult();
+  laseLage();
+  const box = $("result");
+  box.hidden = false;
+  box.innerHTML = `<div class="grading" role="status"><span class="spinner" aria-hidden="true"></span>
+    <div><strong>Claude rättar ditt prov…</strong><p class="muted">Det brukar ta en till två minuter. Stäng inte sidan.</p></div></div>`;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  try {
+    const res = await fetch(rattaUrl(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ namn: state.name, runda: state.runda, urval: state.urval, svar: state.svar }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.per) throw new Error(data.fel || "servern svarade med fel " + res.status);
+    // Säkerställ att varje fråga har en bedömning.
+    if (state.urval.some(qi => !data.per[qi])) throw new Error("rättningen var ofullständig");
+    state.per = data.per;
+    state.rattning = "Claude";
+    save();
+    showResult();
+  } catch (e) {
+    visaRattningsfel((e instanceof TypeError) ? "Rättningsservern gick inte att nå." : e.message);
+  }
+}
+
+function visaRattningsfel(fel) {
+  $("result").innerHTML = `<div><strong>Claude kunde inte rätta just nu.</strong>
+      <p class="muted">${esc(fel)} Dina svar är sparade på den här datorn – du kan försöka igen om en stund.</p></div>
+    <div class="result-actions">
+      <button class="btn" id="retryBtn" type="button">Försök igen</button>
+      <button class="btn btn-ghost" id="keywordBtn" type="button">Rätta med nyckelord i stället</button>
+    </div>`;
+  $("retryBtn").addEventListener("click", rattaOchVisa);
+  $("keywordBtn").addEventListener("click", () => {
+    state.per = nyckelordsRattning(state.urval, state.svar);
+    state.rattning = "Nyckelord";
+    state.rattningsfel = fel;
+    save();
+    showResult();
+  });
+}
+
+function berakna() {
+  const score = state.urval.reduce((n, qi) => n + state.per[qi].steg.length, 0);
+  const max = state.urval.reduce((n, qi) => n + QUESTIONS[qi].s.length, 0);
+  const pct = Math.round(score / max * 100);
+  return { score, max, pct, grade: betygFor(pct) };
+}
+const felFragor = () => state.urval.filter(qi => state.per[qi].steg.length < QUESTIONS[qi].s.length);
+
+function showResult() {
+  laseLage();
+  const r = berakna();
+  const used = state.submittedAt - state.startedAt;
+  $("clockTime").textContent = fmt(totalMs() - used);
+  const fel = felFragor();
+
+  // Varje fråga: poäng, kommentar och facit.
+  state.urval.forEach(qi => {
+    const q = QUESTIONS[qi], res = state.per[qi], sec = $("q" + (qi + 1));
+    const n = res.steg.length, max = q.s.length;
+    const badge = sec.querySelector(".score");
+    badge.hidden = false;
+    badge.textContent = `${n}/${max}`;
+    badge.className = "score " + (n === max ? "full" : n === 0 ? "none" : "part");
+    sec.querySelector(".answer").classList.add(n === max ? "ok" : n === 0 ? "bad" : "part");
+    const fb = sec.querySelector(".feedback");
+    fb.hidden = false;
+    fb.innerHTML = (res.kommentar ? `<span class="ai-note">${esc(res.kommentar)}</span>` : "") +
+      (n < max ? `<a href="#lara-${qi + 1}">Se förklaringar till det du missade ↑</a>` : "");
+    const hit = new Set(res.steg);
+    const det = document.createElement("details");
+    det.className = "facit";
+    det.innerHTML = `<summary>Facit – ${max} steg</summary><ol>${q.s.map((st, si) =>
+      `<li class="${hit.has(si) ? "hit" : "miss"}">${esc(st.f)}<span class="tag">${hit.has(si) ? "✓ med" : "saknas"}</span></li>`).join("")}</ol>`;
+    sec.appendChild(det);
+  });
+
+  // Sammanfattning
+  const tidigare = state.historik.map(h => `<span>Runda ${h.runda}: ${h.score}/${h.max} (${h.grade})</span>`).join("");
+  const box = $("result");
+  box.hidden = false;
+  box.innerHTML = `
+    <div class="result-top">
+      <div class="grade" aria-label="Betyg ${r.grade}">${r.grade}</div>
+      <div class="result-facts">
+        <strong>${esc(state.name)}</strong>
+        <span>${state.runda === 1 ? "Hela provet" : `Runda ${state.runda} – ${state.urval.length} ${state.urval.length === 1 ? "fråga" : "frågor"} du hade fel på`}</span>
+        <span>${r.score} av ${r.max} poäng (${r.pct} %)</span>
+        <span class="muted">Tid: ${fmt(used)} av ${fmt(totalMs())}${used >= totalMs() ? " – tiden tog slut" : ""}</span>
+        <span class="muted">${state.rattning === "Claude" ? "Rättat av Claude" : `Rättat med nyckelord (${esc(state.rattningsfel || "")})`}</span>
+      </div>
+    </div>
+    <div class="scale">${GRADES.slice().reverse().map(x =>
+      `<div class="${x.g === r.grade ? "on" : ""}"><b>${x.g}</b>${x.g === "F" ? "&lt; 40 %" : "≥ " + x.min + " %"}</div>`).join("")}</div>
+    ${tidigare ? `<div class="history">${tidigare}<span><b>Runda ${state.runda}: ${r.score}/${r.max} (${r.grade})</b></span></div>` : ""}
+    <p class="mail-status" id="mailStatus"></p>
+    <div class="result-actions">
+      ${fel.length
+        ? `<button class="btn btn-big" id="nextBtn" type="button">Skriv ett nytt prov med de ${fel.length} ${fel.length === 1 ? "fråga" : "frågorna"} du hade fel på</button>`
+        : `<p><strong>Alla svar är fullständiga – snyggt jobbat!</strong></p>`}
+      <button class="btn btn-ghost" id="restartBtn" type="button">Börja om med hela provet</button>
+    </div>
+    ${fel.length ? `<p class="muted">Läs förklaringarna nedan först. Det nya provet tar ${provtidFor(fel)} minuter, och du ser inte dina gamla svar.</p>` : ""}`;
+  if ($("nextBtn")) $("nextBtn").addEventListener("click", () => nyRunda(fel, r, used));
+  $("restartBtn").addEventListener("click", restart);
+
+  visaForklaringar(fel);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  sendMail(r, used);
+}
+
+// Listan "Det här hade du fel på": saknade delar och felaktiga påståenden, med förklaringar.
+function visaForklaringar(fel) {
+  const el = $("lara");
+  if (!fel.length) { el.hidden = true; return; }
+  el.hidden = false;
+  el.innerHTML = `<h2>Det här hade du fel på</h2>
+    <p class="muted">Gå igenom förklaringarna – det är de här delarna som kommer på nästa prov.</p>` +
+    fel.map(qi => {
+      const q = QUESTIONS[qi], res = state.per[qi];
+      const forkl = new Map((res.saknas || []).map(x => [x.steg, x.forklaring]));
+      const saknade = q.s.map((st, si) => si).filter(si => !res.steg.includes(si));
+      const rader = [
+        ...(res.fel || []).map(f => `<li class="fel"><span class="rubrik">Fel: ”${esc(f.citat)}”</span>${esc(f.forklaring)}</li>`),
+        ...saknade.map(si => `<li class="saknas"><span class="rubrik">Saknades</span><span class="facit-steg">${esc(q.s[si].f)}</span>${forkl.has(si) ? esc(forkl.get(si)) : ""}</li>`),
+      ];
+      return `<div class="lara-q" id="lara-${qi + 1}">
+        <h3><a href="#q${qi + 1}">${qi + 1}. ${esc(q.t)}</a><span class="score ${res.steg.length ? "part" : "none"}">${res.steg.length}/${q.s.length}</span></h3>
+        <ul>${rader.join("")}</ul>
+      </div>`;
+    }).join("");
+}
+
+const provtidFor = urval => Math.max(5, Math.ceil(PROVTID_MIN * urval.reduce((n, qi) => n + QUESTIONS[qi].s.length, 0) / ALLA_STEG));
+
+function nyRunda(fel, r, used) {
+  state = {
+    ...nyttState(),
+    name: state.name,
+    runda: state.runda + 1,
+    urval: fel,
+    provtidMin: provtidFor(fel),
+    historik: [...state.historik, { runda: state.runda, score: r.score, max: r.max, pct: r.pct, grade: r.grade, tid: fmt(used) }],
+    startedAt: Date.now(),
+  };
+  save();
+  location.reload();
+}
+
+function reportText(r, used) {
+  const lines = [`${state.name}: runda ${state.runda}, betyg ${r.grade}, ${r.score}/${r.max} poäng (${r.pct} %), tid ${fmt(used)}, rättning: ${state.rattning}`];
+  if (state.historik.length) lines.push("Tidigare rundor: " + state.historik.map(h => `${h.runda}: ${h.score}/${h.max} (${h.grade})`).join(", "));
+  lines.push("");
+  state.urval.forEach(qi => {
+    const res = state.per[qi], q = QUESTIONS[qi];
+    lines.push(`${qi + 1}. ${q.t}  [${res.steg.length}/${q.s.length}]`);
+    lines.push(`   Svar: ${(state.svar[qi] || "").trim() || "(tomt)"}`);
+    if (res.kommentar) lines.push(`   → ${res.kommentar}`);
+    (res.fel || []).forEach(f => lines.push(`   ✗ Fel: "${f.citat}" – ${f.forklaring}`));
+    q.s.forEach((st, si) => { if (!res.steg.includes(si)) lines.push(`   – Saknades: ${st.f}`); });
+    lines.push("");
+  });
+  return lines.join("\n");
+}
+
+async function sendMail(r, used) {
+  const st = $("mailStatus");
+  if (state.mailSent) { st.textContent = "Resultatet har skickats till läraren."; return; }
+  if (!MOTTAGARE_EPOST) { st.textContent = "Resultatet skickas inte automatiskt. Visa skärmen för din lärare."; return; }
+  st.textContent = "Skickar resultatet till läraren…";
+  try {
+    const res = await fetch("https://formsubmit.co/ajax/" + MOTTAGARE_EPOST, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({
+        _subject: `SO-prov WW2 del 3${state.runda > 1 ? ` (runda ${state.runda})` : ""}: ${state.name} – betyg ${r.grade} (${r.score}/${r.max})`,
+        _template: "box", _captcha: "false",
+        Elev: state.name, Runda: state.runda, Betyg: r.grade, Poang: `${r.score} av ${r.max} (${r.pct} %)`, Tid: fmt(used),
+        Rattning: state.rattning, Svar: reportText(r, used),
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && String(data.success) === "true") {
+      state.mailSent = true; save();
+      st.textContent = "Resultatet har skickats till läraren.";
+    } else st.textContent = "Resultatet kunde inte skickas till läraren. Visa skärmen för din lärare.";
+  } catch (e) {
+    st.textContent = "Resultatet kunde inte skickas (ingen anslutning). Visa skärmen för din lärare.";
+  }
+}
+
+function restart() {
+  const namn = state.name;
+  try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+  state = nyttState(); state.name = namn; save();
+  location.reload();
+}
+
+$("startBtn").addEventListener("click", startExam);
+$("studentName").addEventListener("keydown", e => { if (e.key === "Enter") startExam(); });
+$("submitBtn").addEventListener("click", () => submit(false));
+
+load();
+if (state.runda > 1) $("brandSub").textContent = `· Runda ${state.runda}`;
+$("clockTime").textContent = fmt(totalMs());
+if (state.submittedAt) rattaOchVisa();
+else if (state.startedAt) {
+  if (Date.now() - state.startedAt >= totalMs()) { state.submittedAt = state.startedAt + totalMs(); save(); rattaOchVisa(); }
+  else showRunning();
+} else $("studentName").value = state.name || "";
+</script>
+
+</body>
+</html>

@@ -1,0 +1,47 @@
+# /etc/systemd/system/soprovdel03.service – rättningsservern för SO-prov del 3 (soprov3.49-12-204-84.sslip.io)
+[Unit]
+Description=SO-prov WW2 del 3 rättningsserver (Claude)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=soprovdel03
+Group=soprovdel03
+WorkingDirectory=/opt/soprovdel03/app/server
+# ANTHROPIC_API_KEY=... (läsbar bara för root, 0600)
+EnvironmentFile=/etc/soprovdel03.env
+Environment=PORT=8794 LOGGMAPP=/var/lib/soprovdel03 NODE_ENV=production MAX_PER_DAG=30
+ExecStart=/opt/sistaprov/node/bin/node server.mjs
+Restart=on-failure
+RestartSec=2
+StateDirectory=soprovdel03
+
+MemoryMax=512M
+CPUQuota=100%
+TasksMax=64
+LimitNOFILE=1024
+
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectProc=invisible
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,9 @@
+{
+  "name": "soprovdel03-rattning",
+  "private": true,
+  "type": "module",
+  "description": "Rättningsserver för SO-provet (WW2 del 3) – Claude rättar elevsvar",
+  "scripts": { "start": "node server.mjs" },
+  "engines": { "node": ">=20" },
+  "dependencies": { "@anthropic-ai/sdk": "^1.4.0" }
+}

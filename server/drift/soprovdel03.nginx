@@ -1,0 +1,32 @@
+# /etc/nginx/sites-available/soprovdel03 – SO-prov del 3: provsidan och rättningen via Node på 127.0.0.1:8794.
+# certbot --nginx -d soprov3.49-12-204-84.sslip.io lägger till HTTPS-delen.
+server {
+    listen 80;
+    listen [::]:80;
+    server_name soprov3.49-12-204-84.sslip.io;
+
+    client_max_body_size 200k;
+
+    location = /ratta {
+        limit_req zone=soprovdel03_ratta burst=5 nodelay;
+        limit_req_status 429;
+        proxy_pass http://127.0.0.1:8794;
+        proxy_read_timeout 300s;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location ~ ^/(|index\.html|fragor\.js|status)$ {
+        proxy_pass http://127.0.0.1:8794;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location / {
+        return 404;
+    }
+
+    gzip on;
+    gzip_types text/css application/javascript text/javascript application/json;
+}
