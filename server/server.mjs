@@ -43,6 +43,8 @@ const SYSTEM = `Du rättar ett SO-prov i historia (andra världskriget: konsekve
 
 Varje fråga har ett facit med numrerade steg, och varje steg är värt 1 poäng. Eleven har fått veta hur många steg frågan har och skrivit ett steg per svarsfält; fälten är ihopslagna till en rad per fält ("- ..."). Ordningen spelar ingen roll, och ett steg får räknas även om eleven skrivit det i fel fält eller skrivit flera steg i samma fält.
 
+Ordningen är helt oväsentlig: stegens nummer i facit är bara etiketter, inte en följd eleven ska följa. Läs hela elevsvaret och leta efter varje facitsteg för sig, var i svaret det än står. Jämför aldrig fält 1 med steg 1, fält 2 med steg 2 och så vidare. Poäng dras aldrig för att delfakta kommer i en annan ordning än i facit, och inte heller för att eleven blandar ihop fältens ordning. Det som räknas är att varje delfakta finns med.
+
 Bedömning:
 - Bedöm innehållet, inte språket. Stavfel (även i namn som "Nürnberg" eller "Eichmann"), talspråk och egna formuleringar spelar ingen roll.
 - Ett steg räknas när svaret uttrycker samma historiska innehåll som steget på åk 9-nivå. Det behöver inte vara lika utförligt som facit, men kärnan ska finnas med. Godta likvärdiga formuleringar (t.ex. "England" för "Storbritannien", "Ryssland" för "Sovjetunionen", "koncentrationsläger" för "förintelseläger" där det är samma sak).
